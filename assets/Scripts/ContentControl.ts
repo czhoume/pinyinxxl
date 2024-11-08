@@ -2,6 +2,7 @@ import { _decorator, Component, Node, Prefab, instantiate, Label, Input, input, 
 import { Globals } from './Globals';
 import { Level } from './Level'; // 导入 Level 接口
 import { AudioManager } from './AudioManager';
+import { ScoreManager } from './ScoreManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('ContentControl')
@@ -27,11 +28,14 @@ export class ContentControl extends Component {
 
     @property({ type: AudioManager })
     public audioManager: AudioManager | null = null;
+    @property({ type: ScoreManager })
+    public scoreManager: ScoreManager | null = null;
     // 是否正在交换
     private isSwap: boolean = false;
     swapBeforeIndex: number[] = null; // 交换之前下标
     swapAfterIndex: number[] = null; // 交换之后的下标
     startTouchPos: Vec2 = null;	// 开始触摸的位置
+    score:number=0;
 
     // 棋盘节点
     private chessBoard: Node[][] = [];
@@ -46,6 +50,7 @@ export class ContentControl extends Component {
         this.level_num=2;
         this.globals = this.getComponent(Globals);
         this.audioManager=this.getComponent(AudioManager);
+        this.scoreManager=this.getComponent(ScoreManager);
         if (!this.globals) {
             console.error('Globals component not found!');
         } 
@@ -60,6 +65,7 @@ export class ContentControl extends Component {
         if (!this.hasPossibleMoves()) {
             this.regenerateBoard();
         }
+        this.scoreManager.resetScore();
         this.onMove();
     }
 
@@ -345,6 +351,18 @@ export class ContentControl extends Component {
             i++;
           }
         }
+        if (matches.length >= 3) {
+            // 根据 matches.length 增加 score
+            const scoreMap = {
+              3: 3,
+              4: 9,
+              5: 27
+            };
+      
+            if (scoreMap[matches.length]) {
+              this.scoreManager.addScore(scoreMap[matches.length]);
+            }
+          }
         return matches.length >= 3 ? matches : [];
       }
     
