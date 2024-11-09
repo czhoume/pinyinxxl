@@ -19,7 +19,7 @@ export class Globals extends Component {
                 characters: 
                 [
                     ['yī','一'], ['yī', '衣'], ['yī', '医'],
-                    ['shān','山'], ['shān', '山'], ['shān', 'sān'],
+                    ['shān','山'], ['shān', '山'], 
                     ['rén','人'], ['rén', '仁'],
                     ['mù','目'], ['mù', '木'], ['mù', '牧'],
                     ['tiān','天'], ['tiān', '添'], 
@@ -42,21 +42,13 @@ export class Globals extends Component {
                 ]
             },
             {
-                characters: [['七', 'qī'], ['八', 'bā'], ['九', 'jiǔ']]
-                // stars: [1,2,3],
-            },
-            {
-                characters: [
-                    ['mā', '妈'], ['mā', '马'],  // first tone
-                    ['má', '麻'], ['má', '蚂'],  // second tone
-                    ['mǎ', '码'], ['mǎ', '马'],  // third tone
-                ]
-            },
-            {
                 characters: [
                     ['shǒu', '手'], ['shǒu', '首'],  // third tone
                     ['shōu', '收'], ['shōu', '熟'],  // first tone
                     ['shòu', '受'], ['shòu', '寿'],  // fourth tone
+                    ['dá', '达'], ['dá', '搭'],  // second tone
+                    ['dǎ', '打'], ['dǎ', '大'],  // third tone
+                    ['dà', '大'], ['dà', '答'],  // fourth tone
                 ]
             },
             {
@@ -71,13 +63,6 @@ export class Globals extends Component {
                     ['kǒu', '口'], ['kǒu', '扣'],  // third tone
                     ['kòu', '寇'], ['kòu', '扣'],  // fourth tone
                     ['kōu', '抠'], ['kōu', '口'],  // first tone
-                ]
-            },
-            {
-                characters: [
-                    ['dá', '达'], ['dá', '搭'],  // second tone
-                    ['dǎ', '打'], ['dǎ', '大'],  // third tone
-                    ['dà', '大'], ['dà', '答'],  // fourth tone
                 ]
             },
             {
