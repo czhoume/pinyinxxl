@@ -361,7 +361,6 @@ export class ContentControl extends Component {
       
             if (scoreMap[matches.length]) {
               this.scoreManager.addScore(scoreMap[matches.length]);
-              console.log('adding score', scoreMap[matches.length])
             }
           }
         return matches.length >= 3 ? matches : [];

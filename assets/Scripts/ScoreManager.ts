@@ -13,11 +13,8 @@ export class ScoreManager extends Component {
     }
 
     public addScore(points: number) {
-        console.log(`Before addscore, scoreLabelNode:`, this.scoreLabelNode);
-        console.log(`Before addscore, label:`, this.scoreLabelNode ? this.scoreLabelNode.getComponent(Label) : 'No node');
         this.score += points;
         this.updateScoreLabel();
-        console.log('triggered add score, current score: ', this.score);
     }
 
     public resetScore() {
@@ -26,8 +23,6 @@ export class ScoreManager extends Component {
     }
 
     private updateScoreLabel() {
-        console.log(`Before updateScoreLabel, scoreLabelNode:`, this.scoreLabelNode);
-        console.log(`Before updateScoreLabel, label:`, this.scoreLabelNode ? this.scoreLabelNode.getComponent(Label) : 'No node');
         if (!this.scoreLabelNode) {
             console.log('scoreLabelNode is not assigned!');
             return;
@@ -41,6 +36,5 @@ export class ScoreManager extends Component {
 
         const newLabelString = `Score: ${this.score}`;
         label.string = newLabelString;
-        console.log('Updated label string to:', newLabelString);
     }
 }
