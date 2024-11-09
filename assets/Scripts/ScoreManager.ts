@@ -4,17 +4,24 @@ const { ccclass, property } = _decorator;
 @ccclass('ScoreManager')
 export class ScoreManager extends Component {
     @property(Node)
-    private scoreLabelNode: Node;
+    private scoreLabelNode: Node | null = null;
 
     private score: number = 0;
 
     onLoad() {
+        if (!this.scoreLabelNode) {
+            console.error("Score label node not assigned!");
+        }
         this.updateScoreLabel();
     }
 
-    public addScore(points: number) {
-        this.score += points;
+    public addScore(value: number) {
+        this.score += value;
         this.updateScoreLabel();
+    }
+
+    public getScore(): number {
+        return this.score;
     }
 
     public resetScore() {
@@ -24,17 +31,17 @@ export class ScoreManager extends Component {
 
     private updateScoreLabel() {
         if (!this.scoreLabelNode) {
-            console.log('scoreLabelNode is not assigned!');
+            console.error("Score label node is null!");
             return;
         }
 
         const label = this.scoreLabelNode.getComponent(Label);
         if (!label) {
-            console.log('Label component not found on scoreLabelNode!');
+            console.error("Label component not found on scoreLabelNode!");
             return;
         }
 
-        const newLabelString = `Score: ${this.score}`;
-        label.string = newLabelString;
+        label.string = `Score: ${this.score}`;
+        console.log("Updated score display:", this.score);
     }
 }

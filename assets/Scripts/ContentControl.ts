@@ -3,6 +3,7 @@ import { Globals } from './Globals';
 import { Level } from './Level'; // 导入 Level 接口
 import { AudioManager } from './AudioManager';
 import { ScoreManager } from './ScoreManager';
+import { GameSwitch } from './GameSwitch';
 const { ccclass, property } = _decorator;
 
 @ccclass('ContentControl')
@@ -30,6 +31,10 @@ export class ContentControl extends Component {
     public audioManager: AudioManager | null = null;
     @property({ type: ScoreManager })
     public scoreManager: ScoreManager | null = null;
+    @property
+    private scoreThreshold: number = 20; // Score needed to advance
+    @property({ type: GameSwitch })
+    public gameSwitch: GameSwitch | null = null; // Reference to GameSwitch component
     // 是否正在交换
     private isSwap: boolean = false;
     swapBeforeIndex: number[] = null; // 交换之前下标
@@ -41,30 +46,113 @@ export class ContentControl extends Component {
     private chessBoard: Node[][] = [];
     private globals: Globals | null = null;
     private characters: [string, string][]=null;
-    private level_num: number = null;
+    @property
+    public level_num: number = 1; // Make it public
     private level: Level=null;
 
 
 
     onLoad() {
-        this.level_num=2;
+        this.level_num = 1;
+        
+        // Get Globals component
         this.globals = this.getComponent(Globals);
-        this.audioManager=this.getComponent(AudioManager);
-        this.scoreManager=this.getComponent(ScoreManager);
+        if (!this.globals) {
+            this.globals = this.node.getComponent(Globals);
+        }
+        if (!this.globals) {
+            this.globals = this.node.parent?.getComponent(Globals);
+        }
+        
+        this.audioManager = this.getComponent(AudioManager);
+        this.scoreManager = this.getComponent(ScoreManager);
+        
+        // Simple way to find GameSwitch
+        if (!this.gameSwitch) {
+            this.gameSwitch = this.node.parent?.parent?.getComponent(GameSwitch);
+            if (!this.gameSwitch) {
+                console.error("GameSwitch not found!");
+            }
+        }
+
         if (!this.globals) {
             console.error('Globals component not found!');
-        } 
+        }
     }
     start() {
+        console.log("=== ContentControl Start ===");
+        console.log("1. Starting ContentControl");
+        console.log("2. Current level_num:", this.level_num);
+
+        // Initialize chessBoard array first
+        console.log("3. Initializing chessBoard array");
+        this.chessBoard = Array(this.boardHeight).fill(null).map(() => 
+            Array(this.boardWidth).fill(null)
+        );
+
+        // Clear existing board but preserve score display
+        if (this.node.children.length > 0) {
+            console.log("4A. Clearing existing children");
+            // Remove only chess pieces, not UI elements
+            const childrenToRemove = [...this.node.children];
+            childrenToRemove.forEach(child => {
+                // Check if the child is a chess piece (not a UI element)
+                if (!child.name.includes('Score')) {
+                    this.node.removeChild(child);
+                }
+            });
+        } else {
+            console.log("4B. No existing children to clear");
+        }
+
+        // Check if globals and levels exist
+        console.log("5. Globals check:", {
+            globalsExists: !!this.globals,
+            levelsExists: !!(this.globals?.levels),
+            levelsLength: this.globals?.levels?.length
+        });
+
+        if (!this.globals) {
+            console.error("6A. Globals component not found!");
+            return;
+        }
+
+        if (!this.globals.levels || this.globals.levels.length === 0) {
+            console.error("6B. No levels defined in Globals!");
+            return;
+        }
+
+        console.log("7. About to access level:", this.level_num);
+        console.log("Total levels available:", this.globals.levels.length);
+
+        if (this.level_num > this.globals.levels.length) {
+            console.error(`8A. Level ${this.level_num} does not exist! Max level is ${this.globals.levels.length}`);
+            return;
+        }
+
+        // Initialize new level
         this.level = this.globals.levels[this.level_num - 1];
+        console.log("8B. Level data:", this.level);
+
+        if (!this.level || !this.level.characters) {
+            console.error(`9A. Invalid level data for level ${this.level_num}`);
+            return;
+        }
+
+        console.log("9B. Level setup successful");
         this.characters = this.level.characters;
+        
+        // Generate new board
         this.generateBoard();
-        // 在生成棋盘后检查并消除匹配
+        
+        // Check initial matches
         this.checkInitialMatches();
-        // 检查是否有可行的移动方案
+        
+        // Check for possible moves
         if (!this.hasPossibleMoves()) {
             this.regenerateBoard();
         }
+        
         this.scoreManager.resetScore();
         this.onMove();
     }
@@ -88,7 +176,7 @@ export class ContentControl extends Component {
                 
                 // 检查垂直交换
                 if (i < this.boardHeight - 1) {
-                    // 模拟垂直交换
+                    // 模拟垂直���换
                     this.swapPieces([i, j], [i + 1, j]);
                     if (this.hasMatches()) {
                         // 还原交换
@@ -159,7 +247,7 @@ export class ContentControl extends Component {
                 }
             }
             
-            // 如果没有找到匹配，退出循环
+            // 如果没有到匹配，退出循环
             if (matchPositions.length === 0) {
                 hasMatches = false;
                 continue;
@@ -280,27 +368,64 @@ export class ContentControl extends Component {
         let anyMatchFound = false;
         
         while (hasMatches) {
-            let matches = [];
-            // 检查所有位置的匹配,而不是只检查交换的位置
+            let matches = new Set<string>(); // Specify the type as string
+            // 检查所有位置的匹配,而只是只检查交换的位置
             for (let i = 0; i < this.boardHeight; i++) {
                 for (let j = 0; j < this.boardWidth; j++) {
                     if (this.chessBoard[i][j]) {
                         const horizontalMatches = this.checkMatch(i, j, true);
                         const verticalMatches = this.checkMatch(i, j, false);
-                        matches = matches.concat(horizontalMatches, verticalMatches);
+                        
+                        // Add matches to Set as strings to ensure uniqueness
+                        [...horizontalMatches, ...verticalMatches].forEach(([row, col]) => {
+                            matches.add(`${row},${col}`);
+                        });
                     }
                 }
             }
 
-            if (matches.length < 3) {
+            // Convert matches back to array of positions with type safety
+            const matchArray = Array.from(matches).map((str: string) => {
+                const parts = str.split(',');
+                const row = parseInt(parts[0]);
+                const col = parseInt(parts[1]);
+                return [row, col];
+            });
+
+            if (matchArray.length < 3) {
                 hasMatches = false;
                 continue;
             }
 
             anyMatchFound = true;
 
+            // Calculate score before removing pieces
+            // Score calculation
+            const scoreMap = {
+                3: 3,
+                4: 9,
+                5: 27
+            };
+            
+            const score = scoreMap[Math.min(matchArray.length, 5)] || scoreMap[5];
+            this.scoreManager.addScore(score);
+
+            // Check if score threshold is reached
+            if (this.scoreManager.getScore() >= this.scoreThreshold) {
+                console.log("Score threshold reached! Advancing to next level...");
+                console.log("Current score:", this.scoreManager.getScore());
+                console.log("GameSwitch reference:", this.gameSwitch);
+                this.scheduleOnce(() => {
+                    if (this.gameSwitch) {
+                        this.gameSwitch.advanceToNextLevel();
+                    } else {
+                        console.error("GameSwitch component not found!");
+                    }
+                }, 1.0); // Wait 1 second before advancing
+            }
+
             // 消除匹配的方块
-            for (let [row, col] of matches) {
+            for (let [row, col] of matchArray) {
                 this.node.removeChild(this.chessBoard[row][col]);
                 this.chessBoard[row][col] = null;
             }
@@ -317,52 +442,60 @@ export class ContentControl extends Component {
         return anyMatchFound;
     }
       checkMatch(row, col, horizontal) {
+        // If this piece has already been matched, return empty array
+        if (!this.chessBoard[row][col]) return [];
+        
         const matches = [[row, col]];
         const current = this.chessBoard[row][col].name;
         let i = 1;
+
         if (horizontal) {
-          // 往左遍历
-          while (col - i >= 0 && this.chessBoard[row][col - i].name === current) {
-            matches.push([row, col - i]);
-            i++;
-          }
-          i = 1;
-          // 往右遍历
-          while (
-            col + i < this.chessBoard[row].length &&
-            this.chessBoard[row][col + i].name === current
-          ) {
-            matches.push([row, col + i]);
-            i++;
-          }
-        } else {
-          // 往上
-          while (row - i >= 0 && this.chessBoard[row - i][col].name === current) {
-            matches.push([row - i, col]);
-            i++;
-          }
-          i = 1;
-          // 往下
-          while (
-            row + i < this.chessBoard.length &&
-            this.chessBoard[row + i][col].name === current
-          ) {
-            matches.push([row + i, col]);
-            i++;
-          }
-        }
-        if (matches.length >= 3) {
-            // 根据 matches.length 增加 score
-            const scoreMap = {
-              3: 3,
-              4: 9,
-              5: 27
-            };
-      
-            if (scoreMap[matches.length]) {
-              this.scoreManager.addScore(scoreMap[matches.length]);
+            // Check left
+            while (col - i >= 0 && 
+                   this.chessBoard[row][col - i] && 
+                   this.chessBoard[row][col - i].name === current) {
+                // Only add if it's not already in matches
+                if (!matches.some(([r, c]) => r === row && c === (col - i))) {
+                    matches.push([row, col - i]);
+                }
+                i++;
             }
-          }
+            i = 1;
+            // Check right
+            while (col + i < this.chessBoard[row].length && 
+                   this.chessBoard[row][col + i] && 
+                   this.chessBoard[row][col + i].name === current) {
+                // Only add if it's not already in matches
+                if (!matches.some(([r, c]) => r === row && c === (col + i))) {
+                    matches.push([row, col + i]);
+                }
+                i++;
+            }
+        } else {
+            // Check up
+            while (row - i >= 0 && 
+                   this.chessBoard[row - i][col] && 
+                   this.chessBoard[row - i][col].name === current) {
+                // Only add if it's not already in matches
+                if (!matches.some(([r, c]) => r === (row - i) && c === col)) {
+                    matches.push([row - i, col]);
+                }
+                i++;
+            }
+            i = 1;
+            // Check down
+            while (row + i < this.chessBoard.length && 
+                   this.chessBoard[row + i][col] && 
+                   this.chessBoard[row + i][col].name === current) {
+                // Only add if it's not already in matches
+                if (!matches.some(([r, c]) => r === (row + i) && c === col)) {
+                    matches.push([row + i, col]);
+                }
+                i++;
+            }
+        }
+
+        // Only return matches if there are 3 or more, but don't add score here
         return matches.length >= 3 ? matches : [];
       }
     
@@ -401,27 +534,23 @@ export class ContentControl extends Component {
         const aPos = new Vec3(a.position.x, a.position.y);
         const bPos = new Vec3(b.position.x, b.position.y);
     
-        const swapAPromise = new Promise((resolve) => {
-          tween(a)
+        let completedCount = 0;
+        const checkComplete = () => {
+            completedCount++;
+            if (completedCount === 2) {
+                callback?.();
+            }
+        };
+    
+        tween(a)
             .to(speed, { position: bPos })
-            .call(() => {
-              resolve(true);
-            })
+            .call(checkComplete)
             .start();
-        });
     
-        const swapBPromise = new Promise((resolve) => {
-          tween(b)
+        tween(b)
             .to(speed, { position: aPos })
-            .call(() => {
-              resolve(true);
-            })
+            .call(checkComplete)
             .start();
-        });
-    
-        Promise.allSettled([swapAPromise, swapBPromise]).then(() => {
-          callback?.();
-        });
       }
     
     getSwappingPieces(event: EventTouch) {
@@ -488,7 +617,7 @@ export class ContentControl extends Component {
       // 获取当前棋盘节点
       const uiTransform = this.node.getComponent(UITransform);
   
-      // 转换当前棋盘坐标系
+      // 换当前棋盘坐标系
       const { x, y } = uiTransform.convertToNodeSpaceAR(v3(pos.x, pos.y));
   
       // 遍历坐标 查看该棋子是否包含了点击的点
