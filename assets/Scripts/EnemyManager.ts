@@ -1,0 +1,104 @@
+import { _decorator, Component, Node, Prefab, instantiate, Vec3 } from 'cc';
+import { Enemy } from './Enemy';
+const { ccclass, property } = _decorator;
+
+// 定义敌人类型的接口
+interface EnemyType {
+    prefab: Prefab;
+    spawnRate: number;  // 生成频率（秒）
+    hp: number;         // 生命值
+    speed: number;      // 移动速度
+}
+
+@ccclass('EnemyManager')
+export class EnemyManager extends Component {
+    @property(Prefab)
+    public enemy1Prefab: Prefab = null;
+
+    // 敌人类型配置
+    private enemyTypes: { [key: string]: EnemyType } = {};
+    private enemies: Node[] = [];
+
+    start() {
+        // 初始化敌人类型配置
+        this.initEnemyTypes();
+
+        // 开始生成敌人
+        this.startSpawning();
+    }
+
+    private initEnemyTypes() {
+        // 配置 Enemy1
+        this.enemyTypes['enemy1'] = {
+            prefab: this.enemy1Prefab,
+            spawnRate: 2.0,  // 每2秒生成一个
+            hp: 1,
+            speed: 100
+        };
+
+        // 可以在这里添加更多敌人类型
+    }
+
+    private startSpawning() {
+        // 为每种敌人类型设置生成计时器
+        for (const [type, config] of Object.entries(this.enemyTypes)) {
+            this.schedule(() => {
+                this.spawnEnemy(type);
+            }, config.spawnRate);
+        }
+    }
+
+    private spawnEnemy(type: string) {
+        const config = this.enemyTypes[type];
+        if (!config || !config.prefab) {
+            console.error(`Enemy type ${type} not found or prefab not set!`);
+            return;
+        }
+
+        // 实例化敌人
+        const enemy = instantiate(config.prefab);
+        enemy.name = type;
+
+        // 设置随机位置（在屏幕顶部）
+        const randomX = (Math.random() * 500) - 250; // -250 到 250 之间的随机值
+        enemy.setPosition(new Vec3(randomX, 395, 0));
+
+        // 添加并配置 Enemy 组件
+        const enemyComp = enemy.getComponent(Enemy) || enemy.addComponent(Enemy);
+        if (enemyComp) {
+            enemyComp.moveSpeed = config.speed;
+            enemyComp.hp = config.hp;
+        }
+
+        // 添加到场景和数组
+        this.node.addChild(enemy);
+        this.enemies.push(enemy);
+
+        console.log(`Spawned ${type} at position:`, enemy.position);
+    }
+
+    update(deltaTime: number) {
+        // 清理已销毁的敌人
+        this.enemies = this.enemies.filter(enemy => enemy && enemy.isValid);
+    }
+
+    // 获取当前存活的敌人数量
+    public getEnemyCount(): number {
+        return this.enemies.length;
+    }
+
+    // 停止生成敌人
+    public stopSpawning() {
+        this.unscheduleAllCallbacks();
+    }
+
+    // 清除所有敌人
+    public clearAllEnemies() {
+        this.enemies.forEach(enemy => {
+            if (enemy && enemy.isValid) {
+                enemy.destroy();
+            }
+        });
+        this.enemies = [];
+    }
+} 

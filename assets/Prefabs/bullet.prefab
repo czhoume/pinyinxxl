@@ -151,9 +151,9 @@
       "__id__": 7
     },
     "tag": 0,
-    "_group": 4,
+    "_group": 1,
     "_density": 1,
-    "_sensor": true,
+    "_sensor": false,
     "_friction": 0.2,
     "_restitution": 0,
     "_offset": {
@@ -170,7 +170,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "11ruiGjbxOcpqZyfOX3e12"
+    "fileId": "f2mgtfIxhAwa32TrYS2c/z"
   },
   {
     "__type__": "cc.RigidBody2D",
@@ -185,11 +185,11 @@
       "__id__": 9
     },
     "enabledContactListener": true,
-    "bullet": true,
+    "bullet": false,
     "awakeOnLoad": true,
-    "_group": 4,
+    "_group": 1,
     "_type": 2,
-    "_allowSleep": true,
+    "_allowSleep": false,
     "_gravityScale": 1,
     "_linearDamping": 0,
     "_angularDamping": 0,
@@ -204,7 +204,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "77u3NT3FVBc7EG3Wr7R3tr"
+    "fileId": "64Owj0eu1HhZ+TPObC1E/7"
   },
   {
     "__type__": "cc.PrefabInfo",
