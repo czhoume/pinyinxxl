@@ -32,7 +32,7 @@ export class ContentControl extends Component {
     @property({ type: ScoreManager })
     public scoreManager: ScoreManager | null = null;
     @property
-    private scoreThreshold: number = 20; // Score needed to advance
+    private scoreThreshold: number = 100; // Score needed to advance
     @property({ type: GameSwitch })
     public gameSwitch: GameSwitch | null = null; // Reference to GameSwitch component
     // 是否正在交换
