@@ -196,31 +196,34 @@ export class ShootingGame extends Component {
         PhysicsSystem2D.instance.enable = true;
         PhysicsSystem2D.instance.gravity = new Vec2(0, 0);
 
-        // 获取碰撞器和刚体
-        const holdCollider = this.player.node.getComponent(BoxCollider2D);
-        if (!holdCollider) {
-            const collider = this.player.node.addComponent(BoxCollider2D);
-            collider.enabled = true;
-            collider.sensor = true;
-            collider.size.width = 40;
-            collider.size.height = 40;
-            // 移除碰撞组设置
-            collider.apply();
-        }
+        // // 只保留一个碰撞器设置
+        // const playerCollider = this.player.node.getComponent(BoxCollider2D);
+        // if (!playerCollider) {
+        //     const collider = this.player.node.addComponent(BoxCollider2D);
+        //     collider.enabled = true;
+        //     collider.sensor = true;
+        //     collider.size.width = 40;
+        //     collider.size.height = 40;
+        //     collider.group = 1;  // 玩家组为1
+        //     collider.apply();
 
-        // 获取刚体
-        this.selfBody = this.player.node.getComponent(RigidBody2D);
-        if (!this.selfBody) {
-            this.selfBody = this.player.node.addComponent(RigidBody2D);
-            this.selfBody.type = ERigidBody2DType.Dynamic;
-            this.selfBody.allowSleep = false;
-            this.selfBody.gravityScale = 0;
-            this.selfBody.fixedRotation = true;
-            this.selfBody.enabledContactListener = true;
-        }
+        //     // 注册碰撞回调
+        //     collider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+        // }
+
+        // // 获取刚体
+        // this.selfBody = this.player.node.getComponent(RigidBody2D);
+        // if (!this.selfBody) {
+        //     this.selfBody = this.player.node.addComponent(RigidBody2D);
+        //     this.selfBody.type = ERigidBody2DType.Dynamic;
+        //     this.selfBody.allowSleep = false;
+        //     this.selfBody.gravityScale = 0;
+        //     this.selfBody.fixedRotation = true;
+        //     this.selfBody.enabledContactListener = true;
+        // }
 
         // 注册碰撞回调
-        // holdCollider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+        // playerCollider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
         // holdCollider.on(Contact2DType.END_CONTACT, this.onEndContact, this);
     }
 
@@ -303,51 +306,98 @@ export class ShootingGame extends Component {
     }
 
     private onBeginContact(selfCollider: Collider2D, otherCollider: Collider2D) {
-        console.log('=== Player/Pinyin Collision Begin ===');
-        console.log('Collision detected on:', this.node.name);
+        console.log('=== Collision Begin ===');
         console.log('Self collider:', {
             name: selfCollider.node.name,
             parent: selfCollider.node.parent?.name,
-            group: selfCollider.group,
-            enabled: selfCollider.enabled
+            path: this.getNodePath(selfCollider.node)
         });
         console.log('Other collider:', {
             name: otherCollider.node.name,
             parent: otherCollider.node.parent?.name,
-            group: otherCollider.group,
-            enabled: otherCollider.enabled
+            path: this.getNodePath(otherCollider.node)
         });
 
-        if (selfCollider.node.name === 'Player' && otherCollider.node.parent?.name === 'Pinyin') {
-            // 获取 Pinyin 组件
-            const pinyinComp = otherCollider.node.parent.getComponent(Pinyin);
+        // 检查是否是玩家与拼音选项的碰撞
+        if (selfCollider.node.name === 'Player') {
+            // 获取拼音组件
+            const optionNode = otherCollider.node.parent;  // 获取选项节点的父节点
+            const pinyinNode = optionNode?.parent?.parent;  // 获取 Pinyin 根节点
+            const pinyinComp = pinyinNode?.getComponent(Pinyin);
+
+            console.log('Found Pinyin component:', {
+                optionNodeName: optionNode?.name,
+                pinyinNodeName: pinyinNode?.name,
+                hasComponent: !!pinyinComp,
+                optionPath: this.getNodePath(otherCollider.node)
+            });
+
             if (pinyinComp) {
-                // 获取碰撞的选项索引
-                const optionIndex = pinyinComp.pinyinLabels.findIndex(label => 
-                    label.node === otherCollider.node || label.node.isChildOf(otherCollider.node));
+                // 直接检查选项是否正确
+                const isCorrect = pinyinComp.isOptionCorrect(optionNode);
+                console.log('Checking answer:', {
+                    optionNode: optionNode.name,
+                    isCorrect: isCorrect
+                });
 
-                if (optionIndex !== -1) {
-                    if (pinyinComp.isCorrectPinyin(optionIndex)) {
-                        console.log("Correct pinyin answer!");
-                        // 升级子弹类型
-                        if (this.bulletManager) {
-                            this.bulletManager.upgradeBulletType();
-                        }
-                    } else {
-                        console.log("Wrong pinyin answer!");
-                        // 降级子弹类型
-                        if (this.bulletManager) {
-                            this.bulletManager.downgradeBulletType();
-                        }
+                if (isCorrect) {
+                    console.log("Correct pinyin answer!");
+                    // 升级子弹类型
+                    if (this.bulletManager) {
+                        this.bulletManager.upgradeBulletType();
                     }
-
-                    // 销毁拼音题目
-                    pinyinComp.node.destroy();
+                } else {
+                    console.log("Wrong pinyin answer!");
+                    // 降级子弹类型
+                    if (this.bulletManager) {
+                        this.bulletManager.downgradeBulletType();
+                    }
                 }
+
+                // 延迟销毁拼音题目
+                this.scheduleOnce(() => {
+                    if (pinyinNode && pinyinNode.isValid) {
+                        // 先禁用所有组件
+                        const components = pinyinNode.getComponents(Component);
+                        components.forEach(comp => {
+                            if (comp.enabled) {
+                                comp.enabled = false;
+                            }
+                        });
+                        
+                        // 然后销毁节点
+                        pinyinNode.destroy();
+                    }
+                }, 0);
             }
         }
     }
 
+    // 辅助方法：获取节点的完整路径
+    private getNodePath(node: Node): string {
+        let path = node.name;
+        let current = node;
+        while (current.parent) {
+            current = current.parent;
+            path = current.name + '/' + path;
+        }
+        return path;
+    }
+
+    // 辅助方法：查找 Pinyin 父节点
+    private findPinyinParent(node: Node): Node | null {
+        let current = node;
+        while (current) {
+            if (current.getComponent(Pinyin)) {
+                return current;
+            }
+            if (!current.parent) {
+                break;
+            }
+            current = current.parent;
+        }
+        return null;
+    }
 
     private onTouchStart(event: EventTouch) {
         

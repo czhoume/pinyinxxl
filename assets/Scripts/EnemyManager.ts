@@ -126,4 +126,14 @@ export class EnemyManager extends Component {
         this.stopSpawning();
         this.startSpawning();
     }
+
+    // 暂停生成敌人
+    public pauseSpawning() {
+        this.unschedule(this.spawnEnemy.bind(this, 'enemy1'));
+    }
+
+    // 恢复生成敌人
+    public resumeSpawning() {
+        this.startSpawning();
+    }
 } 

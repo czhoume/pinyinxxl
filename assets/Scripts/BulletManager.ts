@@ -38,42 +38,42 @@ export class BulletManager extends Component {
         // 添加更多子弹类型
         this.bulletTypes['a2'] = {
             prefab: this.bullet1Prefab,
-            spawnRate: 0.4,
+            spawnRate: 0.3,
             speed: 600,
             damage: 1.5,
-            simultaneousShots: 1
+            simultaneousShots: 2
         };
 
         this.bulletTypes['a3'] = {
             prefab: this.bullet1Prefab,
-            spawnRate: 0.3,
+            spawnRate: 0.1,
             speed: 700,
             damage: 2,
-            simultaneousShots: 2
+            simultaneousShots: 4
         };
 
         this.bulletTypes['a4'] = {
             prefab: this.bullet1Prefab,
-            spawnRate: 0.25,
+            spawnRate: 0.1,
             speed: 800,
             damage: 2.5,
-            simultaneousShots: 2
+            simultaneousShots: 8
         };
 
         this.bulletTypes['a5'] = {
             prefab: this.bullet1Prefab,
-            spawnRate: 0.2,
+            spawnRate: 0.1,
             speed: 900,
             damage: 3,
-            simultaneousShots: 3
+            simultaneousShots: 16
         };
 
         this.bulletTypes['a6'] = {
             prefab: this.bullet1Prefab,
-            spawnRate: 0.15,
+            spawnRate: 0.1,
             speed: 1000,
             damage: 3.5,
-            simultaneousShots: 3
+            simultaneousShots: 32
         };
     }
 

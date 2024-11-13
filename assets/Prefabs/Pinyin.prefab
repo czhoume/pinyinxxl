@@ -446,8 +446,12 @@
       "__id__": 19
     },
     "characterLabel": null,
-    "pinyinLabels": [],
+    "optionPrefab": {
+      "__uuid__": "4cd3805c-1813-4438-95e0-5864f1c11cf7",
+      "__expectedType__": "cc.Prefab"
+    },
     "moveSpeed": 100,
+    "optionWidth": 100,
     "_id": ""
   },
   {
