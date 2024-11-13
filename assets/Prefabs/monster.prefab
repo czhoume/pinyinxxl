@@ -151,7 +151,7 @@
       "__id__": 7
     },
     "tag": 0,
-    "_group": 1,
+    "_group": 8,
     "_density": 1,
     "_sensor": true,
     "_friction": 0.2,
@@ -187,7 +187,7 @@
     "enabledContactListener": true,
     "bullet": false,
     "awakeOnLoad": true,
-    "_group": 1,
+    "_group": 8,
     "_type": 2,
     "_allowSleep": false,
     "_gravityScale": 1,
@@ -215,6 +215,7 @@
       "__id__": 0
     },
     "fileId": "85bxWKntVKMJn1ODgU32aI",
-    "instance": null
+    "instance": null,
+    "targetOverrides": null
   }
 ]

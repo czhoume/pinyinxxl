@@ -151,7 +151,7 @@
       "__id__": 7
     },
     "tag": 0,
-    "_group": 1,
+    "_group": 4,
     "_density": 1,
     "_sensor": false,
     "_friction": 0.2,
@@ -187,7 +187,7 @@
     "enabledContactListener": true,
     "bullet": false,
     "awakeOnLoad": true,
-    "_group": 1,
+    "_group": 4,
     "_type": 2,
     "_allowSleep": false,
     "_gravityScale": 1,

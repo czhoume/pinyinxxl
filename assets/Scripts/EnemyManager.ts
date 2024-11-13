@@ -15,37 +15,58 @@ export class EnemyManager extends Component {
     @property(Prefab)
     public enemy1Prefab: Prefab = null;
 
-    // 敌人类型配置
+    @property
+    private initialSpawnRate: number = 2.0;  // 初始生成间隔（秒）
+    
+    @property
+    private minSpawnRate: number = 0.3;      // 最小生成间隔（秒）
+    
+    @property
+    private spawnRateDecrease: number = 0.2; // 每次加速减少的间隔（秒）
+    
+    @property
+    private speedUpInterval: number = 10;     // 加速间隔（秒）
+
+    private currentSpawnRate: number = 2.0;   // 当前生成间隔
     private enemyTypes: { [key: string]: EnemyType } = {};
     private enemies: Node[] = [];
 
     start() {
-        // 初始化敌人类型配置
+        this.currentSpawnRate = this.initialSpawnRate;
         this.initEnemyTypes();
-
-        // 开始生成敌人
         this.startSpawning();
+        
+        // 开始定时加速
+        this.schedule(this.increaseSpawnSpeed, this.speedUpInterval);
     }
 
     private initEnemyTypes() {
-        // 配置 Enemy1
         this.enemyTypes['enemy1'] = {
             prefab: this.enemy1Prefab,
-            spawnRate: 2.0,  // 每2秒生成一个
+            spawnRate: this.currentSpawnRate,
             hp: 1,
             speed: 100
         };
-
-        // 可以在这里添加更多敌人类型
     }
 
     private startSpawning() {
-        // 为每种敌人类型设置生成计时器
-        for (const [type, config] of Object.entries(this.enemyTypes)) {
-            this.schedule(() => {
-                this.spawnEnemy(type);
-            }, config.spawnRate);
-        }
+        // 开始生成敌人
+        this.schedule(this.spawnEnemy.bind(this, 'enemy1'), this.currentSpawnRate);
+    }
+
+    private increaseSpawnSpeed() {
+        // 取消当前的生成计时器
+        this.unschedule(this.spawnEnemy.bind(this, 'enemy1'));
+        
+        // 减少生成间隔，但不低于最小值
+        this.currentSpawnRate = Math.max(this.minSpawnRate, 
+            this.currentSpawnRate - this.spawnRateDecrease);
+        
+        // 更新敌人类型配置
+        this.enemyTypes['enemy1'].spawnRate = this.currentSpawnRate;
+        
+        // 使用新的间隔重新开始生成
+        this.startSpawning();
     }
 
     private spawnEnemy(type: string) {
@@ -73,8 +94,6 @@ export class EnemyManager extends Component {
         // 添加到场景和数组
         this.node.addChild(enemy);
         this.enemies.push(enemy);
-
-        console.log(`Spawned ${type} at position:`, enemy.position);
     }
 
     update(deltaTime: number) {
@@ -100,5 +119,11 @@ export class EnemyManager extends Component {
             }
         });
         this.enemies = [];
+    }
+
+    public resetSpawnRate() {
+        this.currentSpawnRate = this.initialSpawnRate;
+        this.stopSpawning();
+        this.startSpawning();
     }
 } 

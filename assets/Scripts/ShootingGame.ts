@@ -1,7 +1,7 @@
 import { _decorator, Component, Node, Vec3, Touch, EventTouch, input, Input, Sprite, UITransform, Button, Prefab, instantiate, Color, Collider2D, Contact2DType, BoxCollider2D, PhysicsSystem2D, EPhysics2DDrawFlags, Vec2, Rect, IPhysics2DContact, RigidBody2D, ERigidBody2DType } from 'cc';
 import { BulletManager } from './BulletManager';
-import { Enemy } from './Enemy';
 import { EnemyManager } from './EnemyManager';
+import { Pinyin } from './Pinyin';
 const { ccclass, property } = _decorator;
 
 @ccclass('ShootingGame')
@@ -47,6 +47,8 @@ export class ShootingGame extends Component {
 
     private selfBody: RigidBody2D = null;  // 自己的刚体组件
 
+    private shootPosition: Vec3 = new Vec3(0, 0, 0);
+
     start() {
         console.log("=== ShootingGame Start ===");
         
@@ -56,30 +58,10 @@ export class ShootingGame extends Component {
             // 设置玩家的初始位置在屏幕底部偏上一点的位置
             this.player.node.setPosition(new Vec3(0, -200, 0));
 
-            // 添加刚体
-            const playerRigidBody = this.player.node.getComponent(RigidBody2D) || this.player.node.addComponent(RigidBody2D);
-            playerRigidBody.type = ERigidBody2DType.Dynamic;
-            playerRigidBody.allowSleep = false;
-            playerRigidBody.gravityScale = 0;
-            playerRigidBody.fixedRotation = true;
-            playerRigidBody.enabledContactListener = true;
-
             // 添加碰撞器
-            const playerCollider = this.player.node.getComponent(BoxCollider2D) || this.player.node.addComponent(BoxCollider2D);
+            const playerCollider = this.player.node.getComponent(BoxCollider2D);
             if (playerCollider) {
-                playerCollider.enabled = true;
-                playerCollider.sensor = true;
-                playerCollider.size.width = 40;
-                playerCollider.size.height = 40;
-                
-                // 修改碰撞组设置
-                playerCollider.group = 1;      // 玩家组为1
-                playerCollider.mask = 4;       // 只与组3碰撞
-                
-                playerCollider.apply();
-
-                // 注册碰撞回调
-                // playerCollider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+                playerCollider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
             }
         }
 
@@ -293,8 +275,9 @@ export class ShootingGame extends Component {
                 playerPos.z            // 保持与玩家同的 z 坐标
             );
             
-            // 传入子弹类型和位置
-            this.bulletManager.createBullet('bullet1', bulletPos);
+            // 使用当前子弹类型
+            const currentType = this.bulletManager.getCurrentBulletType();
+            this.bulletManager.createBullet(currentType, bulletPos);
         }
     }
 
@@ -320,7 +303,7 @@ export class ShootingGame extends Component {
     }
 
     private onBeginContact(selfCollider: Collider2D, otherCollider: Collider2D) {
-        console.log('=== Player/Enemy Collision Begin ===');
+        console.log('=== Player/Pinyin Collision Begin ===');
         console.log('Collision detected on:', this.node.name);
         console.log('Self collider:', {
             name: selfCollider.node.name,
@@ -335,28 +318,36 @@ export class ShootingGame extends Component {
             enabled: otherCollider.enabled
         });
 
-        if (selfCollider.node.name === 'Player' && otherCollider.node.name === 'Enemy') {
-            console.log('Player hit by enemy!');
-            // TODO: 添加玩家被击中的逻辑
+        if (selfCollider.node.name === 'Player' && otherCollider.node.parent?.name === 'Pinyin') {
+            // 获取 Pinyin 组件
+            const pinyinComp = otherCollider.node.parent.getComponent(Pinyin);
+            if (pinyinComp) {
+                // 获取碰撞的选项索引
+                const optionIndex = pinyinComp.pinyinLabels.findIndex(label => 
+                    label.node === otherCollider.node || label.node.isChildOf(otherCollider.node));
+
+                if (optionIndex !== -1) {
+                    if (pinyinComp.isCorrectPinyin(optionIndex)) {
+                        console.log("Correct pinyin answer!");
+                        // 升级子弹类型
+                        if (this.bulletManager) {
+                            this.bulletManager.upgradeBulletType();
+                        }
+                    } else {
+                        console.log("Wrong pinyin answer!");
+                        // 降级子弹类型
+                        if (this.bulletManager) {
+                            this.bulletManager.downgradeBulletType();
+                        }
+                    }
+
+                    // 销毁拼音题目
+                    pinyinComp.node.destroy();
+                }
+            }
         }
     }
 
-    private onEndContact(selfCollider: Collider2D, otherCollider: Collider2D) {
-        console.log('=== Player/Enemy Collision End ===');
-        console.log('End collision detected on:', this.node.name);
-        console.log('Self collider:', {
-            name: selfCollider.node.name,
-            parent: selfCollider.node.parent?.name,
-            group: selfCollider.group,
-            enabled: selfCollider.enabled
-        });
-        console.log('Other collider:', {
-            name: otherCollider.node.name,
-            parent: otherCollider.node.parent?.name,
-            group: otherCollider.group,
-            enabled: otherCollider.enabled
-        });
-    }
 
     private onTouchStart(event: EventTouch) {
         
@@ -482,13 +473,19 @@ export class ShootingGame extends Component {
 
     }
 
-    // 添加系统级的碰撞回调
-    private onSystemContact(a: Collider2D, b: Collider2D, c: IPhysics2DContact | null) {
-        console.log('System detected collision between:', {
-            objectA: a.node.name,
-            groupA: a.group,
-            objectB: b.node.name,
-            groupB: b.group
+
+    public shootBullet(type: string) {
+        if (!this.bulletManager) {
+            console.error('BulletManager is not assigned!');
+            return;
+        }
+
+        // 调用 BulletManager 的 createBullet 方法
+        const bullets = this.bulletManager.createBullet(type, this.shootPosition);
+
+        // 处理返回的子弹节点数组
+        bullets.forEach(bullet => {
+            console.log(`Bullet created at position: ${bullet.position}`);
         });
     }
 } 

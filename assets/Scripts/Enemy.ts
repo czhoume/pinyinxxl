@@ -16,7 +16,7 @@ export class Enemy extends Component {
     start() {
 
         // 添加碰撞器
-        this.collider = this.addComponent(BoxCollider2D);
+        this.collider = this.getComponent(BoxCollider2D);
         if (this.collider) {
 
             // 注册碰撞回调
@@ -33,7 +33,6 @@ export class Enemy extends Component {
             
             // 回收子弹
             const bulletManager = otherCollider.node.parent?.getComponent(BulletManager);
-            console.log('bulletManager children:', bulletManager.node.children.map(child => child.name));
             if (bulletManager) {
                 bulletManager.recycleBullet(otherCollider.node);
             }
