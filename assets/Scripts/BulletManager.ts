@@ -15,6 +15,9 @@ export class BulletManager extends Component {
     @property(Prefab)
     public bullet1Prefab: Prefab = null;
 
+    @property(Prefab)
+    public bullet2Prefab: Prefab = null;
+
     // 子弹类型配置
     private bulletTypes: { [key: string]: BulletType } = {};
     private activeBullets: Node[] = [];
@@ -40,7 +43,7 @@ export class BulletManager extends Component {
             prefab: this.bullet1Prefab,
             spawnRate: 0.3,
             speed: 600,
-            damage: 1.5,
+            damage: 1,
             simultaneousShots: 2
         };
 
@@ -48,32 +51,81 @@ export class BulletManager extends Component {
             prefab: this.bullet1Prefab,
             spawnRate: 0.1,
             speed: 700,
-            damage: 2,
-            simultaneousShots: 4
+            damage: 1,
+            simultaneousShots: 3
         };
 
         this.bulletTypes['a4'] = {
             prefab: this.bullet1Prefab,
             spawnRate: 0.1,
             speed: 800,
-            damage: 2.5,
-            simultaneousShots: 8
+            damage: 1,
+            simultaneousShots: 4
         };
 
         this.bulletTypes['a5'] = {
             prefab: this.bullet1Prefab,
             spawnRate: 0.1,
             speed: 900,
-            damage: 3,
-            simultaneousShots: 16
+            damage: 1,
+            simultaneousShots: 5
         };
 
         this.bulletTypes['a6'] = {
             prefab: this.bullet1Prefab,
             spawnRate: 0.1,
             speed: 1000,
-            damage: 3.5,
-            simultaneousShots: 32
+            damage: 1,
+            simultaneousShots: 6
+        };
+
+        // m系列子弹配置
+        this.bulletTypes['m1'] = {
+            prefab: this.bullet2Prefab,
+            spawnRate: 0.5,
+            speed: 600,
+            damage: 5,
+            simultaneousShots: 3
+        };
+
+        this.bulletTypes['m2'] = {
+            prefab: this.bullet2Prefab,
+            spawnRate: 0.3,
+            speed: 700,
+            damage: 5,
+            simultaneousShots: 4
+        };
+
+        this.bulletTypes['m3'] = {
+            prefab: this.bullet2Prefab,
+            spawnRate: 0.1,
+            speed: 800,
+            damage: 5,
+            simultaneousShots: 5
+        };
+
+        this.bulletTypes['m4'] = {
+            prefab: this.bullet2Prefab,
+            spawnRate: 0.1,
+            speed: 900,
+            damage: 5,
+            simultaneousShots: 6
+        };
+
+        this.bulletTypes['m5'] = {
+            prefab: this.bullet2Prefab,
+            spawnRate: 0.05,
+            speed: 1000,
+            damage: 5,
+            simultaneousShots: 6
+        };
+
+        this.bulletTypes['m6'] = {
+            prefab: this.bullet2Prefab,
+            spawnRate: 0.05,
+            speed: 1100,
+            damage: 5,
+            simultaneousShots: 6
         };
     }
 
@@ -94,7 +146,7 @@ export class BulletManager extends Component {
 
     // 升级子弹类型
     public upgradeBulletType() {
-        const types = ['a1', 'a2', 'a3', 'a4', 'a5', 'a6'];
+        const types = ['a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'm1', 'm2', 'm3', 'm4', 'm5', 'm6'];
         const currentIndex = types.indexOf(this.currentBulletType);
         if (currentIndex < types.length - 1) {
             this.setBulletType(types[currentIndex + 1]);
@@ -103,7 +155,7 @@ export class BulletManager extends Component {
 
     // 降级子弹类型
     public downgradeBulletType() {
-        const types = ['a1', 'a2', 'a3', 'a4', 'a5', 'a6'];
+        const types = ['a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'm1', 'm2', 'm3', 'm4', 'm5', 'm6'];
         const currentIndex = types.indexOf(this.currentBulletType);
         if (currentIndex > 0) {
             this.setBulletType(types[currentIndex - 1]);
@@ -118,6 +170,12 @@ export class BulletManager extends Component {
         }
 
         const bullets: Node[] = [];
+        const bulletSpacing = 20;  // 子弹之间的间距
+        
+        // 计算总宽度，以便居中排列
+        const totalWidth = (config.simultaneousShots - 1) * bulletSpacing;
+        const startOffset = -totalWidth / 2;  // 从最左边开始的偏移量
+
         for (let i = 0; i < config.simultaneousShots; i++) {
             // 创建子弹
             const bullet = instantiate(config.prefab);
@@ -125,8 +183,8 @@ export class BulletManager extends Component {
 
             // 设置位置
             if (position) {
-                const offset = (i - (config.simultaneousShots - 1) / 2) * 10; // Example offset
-                bullet.setPosition(position.x + offset, position.y, position.z);
+                const xOffset = startOffset + (i * bulletSpacing);  // 计算每个子弹的水平偏移
+                bullet.setPosition(position.x + xOffset, position.y, position.z);
             }
 
             // 添加到场景和管理数组

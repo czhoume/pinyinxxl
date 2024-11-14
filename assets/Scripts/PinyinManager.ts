@@ -9,27 +9,13 @@ export class PinyinManager extends Component {
     @property(Prefab)
     public pinyinPrefab: Prefab = null;
 
-    @property(EnemyManager)
-    private enemyManager: EnemyManager = null;
-
-    @property
-    private spawnInterval: number = 5.0;  // 生成间隔（秒）
-
     private activePinyins: Node[] = [];
 
-    start() {
-        this.schedule(this.spawnPinyin, this.spawnInterval);
-    }
-
-    private spawnPinyin() {
+    // 生成单个拼音题目
+    public spawnPinyin() {
         if (!this.pinyinPrefab) {
             console.error("Pinyin prefab not assigned!");
             return;
-        }
-
-        // 暂停敌人生成
-        if (this.enemyManager) {
-            this.enemyManager.pauseSpawning();
         }
 
         // 获取随机题目
@@ -48,30 +34,11 @@ export class PinyinManager extends Component {
                 problem.pinyins,
                 problem.correctIndex
             );
-
-            // 监听拼音销毁事件
-            pinyinNode.once(Node.EventType.NODE_DESTROYED, () => {
-                // 拼音被销毁时恢复敌人生成
-                if (this.enemyManager) {
-                    this.enemyManager.resumeSpawning();
-                }
-            });
         }
 
         // 添加到场景和数组
         this.node.addChild(pinyinNode);
         this.activePinyins.push(pinyinNode);
-    }
-
-    update(deltaTime: number) {
-        // 清理已销毁的拼音节点
-        this.activePinyins = this.activePinyins.filter(pinyin => 
-            pinyin && pinyin.isValid);
-    }
-
-    // 停止生成拼音
-    public stopSpawning() {
-        this.unscheduleAllCallbacks();
     }
 
     // 清除所有拼音
@@ -82,5 +49,29 @@ export class PinyinManager extends Component {
             }
         });
         this.activePinyins = [];
+    }
+
+    update(deltaTime: number) {
+        // 清理已销毁的拼音节点
+        this.activePinyins = this.activePinyins.filter(pinyin => 
+            pinyin && pinyin.isValid);
+    }
+
+    // 获取拼音移动速度
+    public getPinyinSpeed(): number {
+        // 创建一个临时的拼音节点来获取速度
+        const tempPinyin = instantiate(this.pinyinPrefab);
+        const pinyinComp = tempPinyin.getComponent(Pinyin);
+        const speed = pinyinComp ? pinyinComp.moveSpeed : 100;
+        tempPinyin.destroy();
+        return speed;
+    }
+
+    // 获取当前活跃的拼音节点
+    public getActivePinyins(): Node[] {
+        // 清理并返回有效的拼音节点
+        this.activePinyins = this.activePinyins.filter(pinyin => 
+            pinyin && pinyin.isValid);
+        return this.activePinyins;
     }
 } 

@@ -41,6 +41,66 @@ export class ShootingProblem {
             character: "猫",
             correctPinyin: "māo",
             wrongPinyins: ["méi", "móu", "mǎo"]
+        },
+        {
+            character: "日",
+            correctPinyin: "rì",
+            wrongPinyins: ["rī", "rǐ", "rí"]
+        },
+        {
+            character: "二",
+            correctPinyin: "èr",
+            wrongPinyins: ["ěr", "ér", "ēr"]
+        },
+        {
+            character: "后",
+            correctPinyin: "hòu",
+            wrongPinyins: ["ho", "hōu", "hǒu"]
+        },
+        {
+            character: "过",
+            correctPinyin: "guò",
+            wrongPinyins: ["gò", "gòu", "guǒ"]
+        },
+        {
+            character: "爱",
+            correctPinyin: "ài",
+            wrongPinyins: ["āi", "ǎi", "aī"]
+        },
+        {
+            character: "惜",
+            correctPinyin: "xī",
+            wrongPinyins: ["xí", "xǐ", "xì"]
+        },
+        {
+            character: "净",
+            correctPinyin: "jìng",
+            wrongPinyins: ["jīng", "jǐng", "jíng"]
+        },
+        {
+            character: "领",
+            correctPinyin: "lǐng",
+            wrongPinyins: ["líng", "lǐn", "līng"]
+        },
+        {
+            character: "卷",
+            correctPinyin: "juǎn",
+            wrongPinyins: ["juān", "juán", "juàn"]
+        },
+        {
+            character: "袖",
+            correctPinyin: "xiù",
+            wrongPinyins: ["xiou", "xiū", "xiǔ"]
+        },
+        {
+            character: "光",
+            correctPinyin: "guāng",
+            wrongPinyins: ["gang", "guǎng", "guáng"]
+        },
+        {
+            character: "令",
+            correctPinyin: "lìng",
+            wrongPinyins: ["lin", "líng", "lǐng"]
         }
     ];
 

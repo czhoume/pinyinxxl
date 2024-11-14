@@ -1,5 +1,6 @@
 import { _decorator, Component, Node, BoxCollider2D, RigidBody2D, ERigidBody2DType, Contact2DType, Collider2D, Sprite, Color, Vec2 } from 'cc';
 import { BulletManager } from './BulletManager';
+import { PlayerHealth } from './PlayerHealth';
 const { ccclass, property } = _decorator;
 
 @ccclass('Enemy')
@@ -10,10 +11,19 @@ export class Enemy extends Component {
     @property
     public hp: number = 1;
 
+    @property
+    public damageOnEscape: number = 1;  // 逃脱时造成的伤害
+
     private rigidBody: RigidBody2D = null;
     private collider: BoxCollider2D = null;
+    private playerHealth: PlayerHealth = null;
 
     start() {
+        // 获取 PlayerHealth 组件引用
+        const gameNode = this.node.parent?.parent;  // 假设在 ShootingGame 节点下
+        if (gameNode) {
+            this.playerHealth = gameNode.getComponent(PlayerHealth);
+        }
 
         // 添加碰撞器
         this.collider = this.getComponent(BoxCollider2D);
@@ -54,7 +64,13 @@ export class Enemy extends Component {
         // 检查是否超出屏幕底部
         const currentPos = this.node.position;
         this.node.setPosition(currentPos.x, currentPos.y - this.moveSpeed * deltaTime, currentPos.z);
+        
         if (currentPos.y < -500) {
+            // 对玩家造成伤害
+            if (this.playerHealth) {
+                this.playerHealth.takeDamage(this.damageOnEscape);
+            }
+
             if (this.collider) {
                 this.collider.enabled = false;
             }

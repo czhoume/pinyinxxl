@@ -2,6 +2,7 @@ import { _decorator, Component, Node, Vec3, Touch, EventTouch, input, Input, Spr
 import { BulletManager } from './BulletManager';
 import { EnemyManager } from './EnemyManager';
 import { Pinyin } from './Pinyin';
+import { FeedbackEffect } from './FeedbackEffect';
 const { ccclass, property } = _decorator;
 
 @ccclass('ShootingGame')
@@ -35,6 +36,9 @@ export class ShootingGame extends Component {
 
     @property(EnemyManager)
     private enemyManager: EnemyManager = null;
+
+    @property(FeedbackEffect)
+    private feedbackEffect: FeedbackEffect = null;
 
     private isMovingLeft: boolean = false;
     private isMovingRight: boolean = false;
@@ -348,6 +352,10 @@ export class ShootingGame extends Component {
                     }
                 } else {
                     console.log("Wrong pinyin answer!");
+                    // 显示错误反馈效果
+                    if (this.feedbackEffect) {
+                        this.feedbackEffect.showWrongFeedback();
+                    }
                     // 降级子弹类型
                     if (this.bulletManager) {
                         this.bulletManager.downgradeBulletType();
@@ -491,36 +499,7 @@ export class ShootingGame extends Component {
             }
         }
 
-        // 修改背景滚动逻辑
-        if (this.backgrounds.length >= 2) {
-            for (let i = 0; i < this.backgrounds.length; i++) {
-                const bg = this.backgrounds[i];
-                if (!bg || !bg.isValid) continue;  // 检查背景节点是否有效
-                
-                const bgTransform = bg.getComponent(UITransform);
-                if (!bgTransform) continue;  // 检查 UITransform 是否存在
-                
-                const bgHeight = bgTransform.height;
-                
-                // 移动背景
-                const newPos = bg.position.clone();
-                newPos.y -= this.backgroundScrollSpeed * deltaTime;
-                
-                // 当背景完全移出屏幕底部时
-                if (newPos.y <= -bgHeight) {
-                    // 将其移动到另一个背景的上方
-                    const otherBgIndex = (i + 1) % 2;
-                    const otherBg = this.backgrounds[otherBgIndex];
-                    if (otherBg && otherBg.isValid) {  // 检查另一个背景是否有效
-                        const otherBgY = otherBg.position.y;
-                        newPos.y = otherBgY + bgHeight;
-                    }
-                }
-                
-                bg.setPosition(newPos);
-            }
-        }
-
+        // 移除背景滚动逻辑
     }
 
 
