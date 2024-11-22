@@ -101,6 +101,56 @@ export class ShootingProblem {
             character: "令",
             correctPinyin: "lìng",
             wrongPinyins: ["lin", "líng", "lǐng"]
+        },
+        {
+            character: "以",
+            correctPinyin: "yǐ",
+            wrongPinyins: ["yí", "yī", "yì"]
+        },
+        {
+            character: "锅",
+            correctPinyin: "guō",
+            wrongPinyins: ["guou", "guǒ", "guò"]
+        },
+        {
+            character: "有",
+            correctPinyin: "yǒu",
+            wrongPinyins: ["yóu", "yōu", "yòu"]
+        },
+        {
+            character: "口",
+            correctPinyin: "kǒu",
+            wrongPinyins: ["kóu", "kōu", "kòu"]
+        },
+        {
+            character: "多",
+            correctPinyin: "duō",
+            wrongPinyins: ["do", "duó", "duǒ"]
+        },
+        {
+            character: "琴",
+            correctPinyin: "qín",
+            wrongPinyins: ["qing", "qǐn", "qīn"]
+        },
+        {
+            character: "品",
+            correctPinyin: "pǐn",
+            wrongPinyins: ["pīn", "pín", "pìn"]
+        },
+        {
+            character: "徐",
+            correctPinyin: "xú",
+            wrongPinyins: ["xǔ", "xū", "xù"]
+        },
+        {
+            character: "引",
+            correctPinyin: "yǐn",
+            wrongPinyins: ["yíng", "yīn", "yìn"]
+        },
+        {
+            character: "秀",
+            correctPinyin: "xiù",
+            wrongPinyins: ["xiou", "xiū", "xiǔ"]
         }
     ];
 
