@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Prefab, instantiate, Vec3 } from 'cc';
+import { _decorator, Component, Node, Prefab, instantiate, Vec3, BoxCollider2D } from 'cc';
 const { ccclass, property } = _decorator;
 
 // 定义子弹类型的接口
@@ -162,7 +162,7 @@ export class BulletManager extends Component {
         }
     }
 
-    public createBullet(type: string, position?: Vec3): Node[] {
+    public createBullet(type: string, position: Vec3): Node[] {
         const config = this.bulletTypes[type];
         if (!config || !config.prefab) {
             console.error(`Bullet type ${type} not found or prefab not set!`);
@@ -191,6 +191,12 @@ export class BulletManager extends Component {
             this.node.addChild(bullet);
             this.activeBullets.push(bullet);
             bullets.push(bullet);
+
+            // 确保新创建的子弹是传感器
+            const collider = bullet.getComponent(BoxCollider2D);
+            if (collider) {
+                collider.sensor = true;
+            }
         }
 
         return bullets;
@@ -231,5 +237,15 @@ export class BulletManager extends Component {
                 bullet.setPosition(newPos);
             }
         }
+    }
+
+    public makeBulletsSensor() {
+        // 使用 activeBullets 而不是 bulletPool
+        this.activeBullets.forEach(bullet => {
+            const collider = bullet.getComponent(BoxCollider2D);
+            if (collider) {
+                collider.sensor = true;
+            }
+        });
     }
 } 

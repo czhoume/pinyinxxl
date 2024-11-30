@@ -26,5 +26,19 @@
       "3": 6,
       "4": 2
     }
+  },
+  "general": {
+    "designResolution": {
+      "width": 640,
+      "height": 960,
+      "fitWidth": true,
+      "fitHeight": false
+    },
+    "orientation": {
+      "landscapeLeft": false,
+      "landscapeRight": false,
+      "portrait": true,
+      "upsideDown": false
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Prefab, instantiate, Vec3 } from 'cc';
+import { _decorator, Component, Node, Prefab, instantiate, Vec3, BoxCollider2D } from 'cc';
 import { Enemy } from './Enemy';
 const { ccclass, property } = _decorator;
 
@@ -9,6 +9,14 @@ interface EnemyType {
     hp: number;         // 生命值
     speed: number;      // 移动速度
     damageOnEscape: number;  // 逃脱时造成的伤害
+}
+
+// 添加边界接口
+interface GameBounds {
+    left: number;
+    right: number;
+    top: number;
+    bottom: number;
 }
 
 @ccclass('EnemyManager')
@@ -45,6 +53,17 @@ export class EnemyManager extends Component {
     private isBossAlive: boolean = false;
     private hasSpawnedBossThisPhase: boolean = false;
     private enemy2Unlocked: boolean = false;
+
+    private spawnBounds: GameBounds = {
+        left: -320,
+        right: 320,
+        top: 480,
+        bottom: -480
+    };
+
+    public setSpawnBounds(bounds: GameBounds) {
+        this.spawnBounds = bounds;
+    }
 
     start() {
         this.currentSpawnRate = this.initialSpawnRate;
@@ -106,8 +125,10 @@ export class EnemyManager extends Component {
         const enemy = instantiate(config.prefab);
         enemy.name = type;
 
-        const randomX = (Math.random() * 500) - 250;
-        enemy.setPosition(new Vec3(randomX, 395, 0));
+        // 在有效范围内随机生成位置
+        const randomX = Math.random() * (this.spawnBounds.right - this.spawnBounds.left) + this.spawnBounds.left;
+        const spawnY = this.spawnBounds.top + 50; // 在顶部上方一点生成
+        enemy.setPosition(new Vec3(randomX, spawnY, 0));
 
         const enemyComp = enemy.getComponent(Enemy) || enemy.addComponent(Enemy);
         if (enemyComp) {
@@ -118,6 +139,12 @@ export class EnemyManager extends Component {
 
         this.node.addChild(enemy);
         this.enemies.push(enemy);
+
+        // 确保新创建的敌人也是传感器
+        const collider = enemy.getComponent(BoxCollider2D);
+        if (collider) {
+            collider.sensor = true;
+        }
     }
 
     private spawnRandomEnemy() {
@@ -267,5 +294,14 @@ export class EnemyManager extends Component {
         }
         console.warn(`Enemy type ${type} not found, returning default speed`);
         return 50; // 默认速度
+    }
+
+    public makeEnemiesSensor() {
+        this.enemies.forEach(enemy => {
+            const collider = enemy.getComponent(BoxCollider2D);
+            if (collider) {
+                collider.sensor = true;
+            }
+        });
     }
 } 
